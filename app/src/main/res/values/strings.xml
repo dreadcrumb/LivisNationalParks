@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Livi\'s National Parks</string>
+    <string name="no_internet">No Internet</string>
+    <string name="placeholder_empty_list">No items found</string>
+    <string name="no_tours_found">No Tours found</string>
+    <string name="tour_thumbnail_description">Thumbnail of the tour</string>
+    <string name="available_till">Available till</string>
+    <string name="tours_loaded">Tours loaded</string>
+    <string name="price">PRICE: %s€</string>
 </resources>
