@@ -1,4 +1,4 @@
-package com.example.livisnationalparks.ui
+package com.example.nationalparks.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,21 +7,19 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.livisnationalparks.ui.compose.navigation.NavigationKeys
+import com.example.nationalparks.ui.compose.navigation.NavigationKeys
 import com.example.nationalparks.ui.compose.navigation.TourListDestination
 import com.example.nationalparks.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
-
-// Single Activity per app
 @AndroidEntryPoint
-class EntryPointActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                LivisNationalParksApp()
+                NationalparksApp()
             }
         }
     }
@@ -29,7 +27,7 @@ class EntryPointActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LivisNationalParksApp() {
+private fun NationalparksApp() {
     val navController = rememberNavController()
     NavHost(navController, startDestination = NavigationKeys.Route.TOUR_LIST) {
         composable(route = NavigationKeys.Route.TOUR_LIST) {

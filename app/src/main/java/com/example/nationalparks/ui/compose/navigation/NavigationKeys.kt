@@ -1,4 +1,4 @@
-package com.example.livisnationalparks.ui.compose.navigation
+package com.example.nationalparks.ui.compose.navigation
 
 object NavigationKeys {
     object Route {

@@ -1,23 +1,44 @@
-package com.example.livisnationalparks.ui.compose.views
+package com.example.nationalparks.ui.compose.views
 
+import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,25 +47,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.annotation.ExperimentalCoilApi
-import com.example.livisnationalparks.ui.compose.contracts.ToursContract
-import com.example.livisnationalparks.model.TourItem
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.nationalparks.R
+import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.ui.compose.contracts.ToursContract
+import com.example.nationalparks.ui.compose.utils.hasNetworkComposable
 import com.example.nationalparks.ui.theme.AppTheme
+import com.example.nationalparks.ui.viewmodels.Sorting
+import com.example.nationalparks.ui.viewmodels.TourListViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
-import java.util.Date
+import kotlinx.coroutines.flow.receiveAsFlow
 
 @Composable
 fun TourListScreen(
     state: ToursContract.State,
     effectFlow: Flow<ToursContract.Effect>?,
+    viewModel: TourListViewModel?,
     onNavigationRequested: (itemId: String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -53,23 +84,50 @@ fun TourListScreen(
     LaunchedEffect(effectFlow) {
         effectFlow?.onEach { effect ->
             if (effect is ToursContract.Effect.DataWasLoaded) snackbarHostState.showSnackbar(
-                message = "", // context.getString(R.string.clubs_loaded),
+                message = context.getString(R.string.tours_loaded),
                 duration = SnackbarDuration.Short
             )
         }?.collect()
     }
-    // SORT here?
+
     Scaffold(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            ToursAppBar()
-        }
+            Column {
+                ToursAppBar()
+                HorizontalDivider(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    thickness = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            ToursList(
-                tourItems = state.tours, loading = state.isLoading//, sorting = sorting
-            ) { itemId ->
-                onNavigationRequested(itemId)
+
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+        ) {
+            Row {
+                SortButtons(
+                    { viewModel?.setSorting(Sorting.STANDARD) },
+                    { viewModel?.setSorting(Sorting.TOP5) },
+                    state.sorting
+                )
+            }
+            Row(Modifier.padding(horizontal = 6.dp)) {
+                ToursList(
+                    tourItems = state.tours,
+                    isLoading = state.isLoading,
+                    sorting = state.sorting,
+                    getSortedTours = { viewModel?.getSortedTours() }
+                ) { itemId ->
+                    onNavigationRequested(itemId)
+                }
             }
             if (state.isLoading) LoadingBar()
         }
@@ -82,10 +140,31 @@ fun ToursAppBar() {
     var menuExpanded by remember {
         mutableStateOf(false)
     }
-    TopAppBar(title = {
-        Icon(painter = painterResource(id = R.drawable.imaginary_logo), contentDescription = "REPLACE")
-        Text(text = stringResource(id = R.string.app_name))
-                      },
+    TopAppBar(
+        colors = TopAppBarColors(
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.primary,
+        ),
+        modifier = Modifier,
+        navigationIcon = {
+            Image(
+                modifier = Modifier.size(TopAppBarDefaults.TopAppBarExpandedHeight),
+                painter = painterResource(id = R.drawable.imaginary_logo),
+                contentDescription = "REPLACE"
+            )
+        },
+        title = {
+            Row {
+
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = stringResource(id = R.string.app_name)
+                )
+            }
+        },
         actions = {
             IconButton(onClick = { menuExpanded = !menuExpanded }) {
                 Icon(
@@ -99,16 +178,16 @@ fun ToursAppBar() {
             ) {
                 // 6
                 DropdownMenuItem(
-                    text = { Text("All Items")},
+                    text = { Text("All Items") },
                     onClick = { /* TODO */ },
                 )
                 DropdownMenuItem(
-                    text = { Text("Fab 5")},
+                    text = { Text("Fab 5") },
                     onClick = { /* TODO */ },
                 )
             }
         }
-        )
+    )
 }
 
 @Composable
@@ -116,52 +195,373 @@ fun LoadingBar() {
     Box(
         contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
     ) {
-        CircularProgressIndicator(Modifier.size(150.dp))
+        CircularProgressIndicator(Modifier.fillMaxSize())
     }
 }
 
-
 @Composable
-fun ToursList(tourItems: List<TourItem>, loading: Boolean, onItemClicked: (id: String) -> Unit = { }) {
+fun SortButtons(
+    onLeftClick: () -> Unit,
+    onRightClick: () -> Unit,
+    sorting: Sorting
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
+                .background(
+                    if (sorting == Sorting.STANDARD)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.primaryContainer
+                )
+                .border(
+                    border = BorderStroke(
+                        2.dp,
+                        MaterialTheme.colorScheme.primary
+                    ),
+                    shape = MaterialTheme.shapes.extraSmall
+                )
+                .clickable(onClick = onLeftClick),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "ALL", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)  // Take up the other half of the screen width
+                .fillMaxSize()
+                .background(
+                    if (sorting == Sorting.TOP5)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.primaryContainer
+                )
+                .border(
+                    border = BorderStroke(
+                        2.dp,
+                        MaterialTheme.colorScheme.primary
+                    ),
+                    shape = MaterialTheme.shapes.extraSmall
+                )
+                .clickable(onClick = onRightClick),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "FAB 5", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
 
-}
-
-@OptIn(ExperimentalCoilApi::class)
-@Preview(showBackground = true)
-@Composable
-fun EmptyPreview() {
-    AppTheme {
-        TourListScreen(ToursContract.State(tours = listOf()), null, { })
+        }
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
+@Composable
+fun ToursList(
+    tourItems: List<TourItem>,
+    isLoading: Boolean,
+    sorting: Sorting,
+    getSortedTours: () -> List<TourItem>?,
+    onItemClicked: (id: String) -> Unit = { }
+) {
+    // Handle Empty List
+    if (!isLoading && tourItems.isEmpty()) {
+        EmptyList()
+    }
+
+    var sortedItems by remember(tourItems, sorting) {
+        mutableStateOf(getSortedTours() ?: tourItems)
+    }
+
+    LaunchedEffect(tourItems, sorting) {
+        sortedItems = getSortedTours() ?: tourItems
+    }
+
+
+
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = 6.dp),
+    ) {
+        items(sortedItems) { item ->
+            TourItemRow(item = item, onItemClicked = onItemClicked)
+        }
+    }
+}
+
+@Composable
+fun EmptyList() {
+    if (!hasNetworkComposable()) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_no_internet),
+                contentDescription = stringResource(id = R.string.no_internet),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .size(250.dp)
+                    .padding(24.dp),
+            )
+            Text(
+                text = stringResource(id = R.string.no_internet),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.imaginary_logo), // Replace with meaningful image
+                contentDescription = stringResource(id = R.string.placeholder_empty_list),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .size(250.dp)
+                    .padding(24.dp),
+            )
+            Text(
+                text = stringResource(id = R.string.no_tours_found),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+        }
+    }
+    return
+}
+
+@Composable
+fun TourItemRow(
+    item: TourItem,
+    iconTransformationBuilder: ImageRequest.Builder.() -> Unit = { },
+    onItemClicked: (id: String) -> Unit = { }
+) {
+    Row(modifier = Modifier
+        .fillMaxSize()
+        .animateContentSize()
+        .wrapContentHeight()
+        .padding(vertical = 6.dp)
+        .border(
+            border = BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.primary
+            ),
+            shape = MaterialTheme.shapes.extraSmall
+        )
+        .background(MaterialTheme.colorScheme.primaryContainer)
+        .clickable {
+            Log.i("TourListScreen", "TourItem '${item.title}' with id '${item.id}' clicked")
+            onItemClicked(item.id)
+        }) {
+        Box(modifier = Modifier.align(alignment = Alignment.CenterVertically)) {
+            TourItemThumbnail(item.thumb, iconTransformationBuilder)
+        }
+        TourItemDetails(
+            item = item, modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterVertically)
+        )
+    }
+
+}
+
+@Composable
+fun TourItemDetails(
+    item: TourItem?, modifier: Modifier
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            Column(Modifier.weight(0.9f)) {
+                Text(
+                    text = item?.title ?: "",
+                    textAlign = TextAlign.Start,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(end = 6.dp)
+                    .weight(1.0f)
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.End),
+                    text = String.format(
+                        stringResource(id = R.string.price),
+                        item?.price?.toString() ?: "XX"
+                    ),
+                    textAlign = TextAlign.End
+                )
+            }
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(end = 6.dp)
+        ) {
+            Text(
+                text = item?.shortDescription ?: "",
+                textAlign = TextAlign.Start,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            Text(
+                text = String.format(
+                    stringResource(id = R.string.available_till),
+                    item?.endDate ?: "XX"
+                ),
+                textAlign = TextAlign.End,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Visible
+            )
+        }
+    }
+}
+
+@Composable
+fun TourItemThumbnail(
+    thumbnailUrl: String,
+    iconTransformationBuilder: ImageRequest.Builder.() -> Unit
+) {
+    var imageState: AsyncImagePainter.State
+            by remember { mutableStateOf(AsyncImagePainter.State.Empty) }
+
+    Box(
+        modifier = Modifier
+            .wrapContentHeight(),
+        contentAlignment = Alignment.Center
+    ) {
+        // Placeholder or a specific size Box
+        Box(
+            modifier = Modifier
+                .height(50.dp)
+                .width(100.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(imageVector = Icons.Filled.Face, contentDescription = "loading")
+        }
+
+        AsyncImage(
+            model = thumbnailUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .width(100.dp)
+                .height(50.dp)
+                .wrapContentHeight()
+                .padding(horizontal = 6.dp)
+                .border(
+                    border = BorderStroke(
+                        2.dp,
+                        MaterialTheme.colorScheme.primary
+                    ),
+                    shape = MaterialTheme.shapes.extraSmall
+                )
+        )
+//                Image(
+//                    painter = painter,
+//                    contentScale = ContentScale.Crop,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .wrapContentHeight()
+//                        .border(
+//                            border = BorderStroke(
+//                                2.dp,
+//                                MaterialTheme.colorScheme.primary
+//                            ),
+//                            shape = MaterialTheme.shapes.extraSmall
+//                        ),
+//                    contentDescription = stringResource(id = R.string.tour_thumbnail_description),
+//                )
+
+//            Image(
+//                painter = rememberImagePainter(
+//                    data = thumbnailUrl, builder = iconTransformationBuilder
+//                ),
+//                modifier = Modifier
+//                    .padding(horizontal = 6.dp)
+//                    .width(100.dp)
+//                    .height(50.dp) // height = width / 2
+//                    .border(
+//                        border = BorderStroke(
+//                            2.dp,
+//                            MaterialTheme.colorScheme.primary
+//                        ),
+//                        shape = MaterialTheme.shapes.extraSmall
+//                    ),
+//                contentDescription = stringResource(id = R.string.tour_thumbnail_description),
+//            )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ListPreview() {
     AppTheme {
-        TourListScreen(ToursContract.State(
+        val viewModel = TourListViewModel(null, null)
+        viewModel.state = ToursContract.State(
             tours = listOf(
                 TourItem(
-                    id = 0,
+                    id = "0",
                     title = "Tour 1",
                     shortDescription = "Short Description 1",
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Gorilla",
-                    startDate = Date(),
-                    endDate = Date(),
+                    startDate = "01.01.2000 15:00",
+                    endDate = "01.01.2000 17:00",
                     price = 20.5
                 ),
                 TourItem(
-                    id = 0,
+                    id = "1",
                     title = "Tour 2",
-                    shortDescription = "Short Description 2",
+                    shortDescription = "This is a much longer description to see how this looks",
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Tiger",
-                    startDate = Date(),
-                    endDate = Date(),
+                    startDate = "01.01.2000 15:00",
+                    endDate = "01.01.2000 17:00",
+                    price = 15.0
+                ),
+                TourItem(
+                    id = "2",
+                    title = "Tour with a much longer title",
+                    shortDescription = "This is a much longer description to see how this looks",
+                    thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Pig",
+                    startDate = "01.01.2000 15:00",
+                    endDate = "01.01.2000 17:00",
                     price = 15.0
                 )
             )
-        ), null, { })
+        )
+        TourListScreen(
+            viewModel.state,
+            viewModel.effects.receiveAsFlow(),
+            viewModel,
+            { })
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EmptyPreview() {
+    AppTheme {
+        TourListScreen(ToursContract.State(tours = listOf()), null, TourListViewModel(null, null), { })
     }
 }
 
@@ -169,6 +569,6 @@ fun ListPreview() {
 @Composable
 fun LoadingPreview() {
     AppTheme {
-        TourListScreen(ToursContract.State(isLoading = true), null, { })
+        TourListScreen(ToursContract.State(isLoading = true), null, null, { })
     }
 }

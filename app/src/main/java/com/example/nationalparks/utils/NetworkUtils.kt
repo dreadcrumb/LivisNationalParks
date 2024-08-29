@@ -1,4 +1,4 @@
-package com.example.livisnationalparks.utils
+package com.example.nationalparks.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
