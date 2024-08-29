@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -32,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,25 +40,25 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
+import androidx.core.graphics.drawable.toBitmap
+import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.example.nationalparks.R
 import com.example.nationalparks.model.TourItem
 import com.example.nationalparks.ui.compose.contracts.ToursContract
@@ -67,27 +67,18 @@ import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.Sorting
 import com.example.nationalparks.ui.viewmodels.TourListViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 
 @Composable
 fun TourListScreen(
-    state: ToursContract.State,
+    state: State<ToursContract.State>,
     effectFlow: Flow<ToursContract.Effect>?,
-    viewModel: TourListViewModel?,
+    viewModel: TourListViewModel,
     onNavigationRequested: (itemId: String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
-
-    LaunchedEffect(effectFlow) {
-        effectFlow?.onEach { effect ->
-            if (effect is ToursContract.Effect.DataWasLoaded) snackbarHostState.showSnackbar(
-                message = context.getString(R.string.tours_loaded),
-                duration = SnackbarDuration.Short
-            )
-        }?.collect()
+    val sortedTours = remember(state.value.sorting, state.value.tours) {
+        viewModel.getSortedTours()
     }
 
     Scaffold(
@@ -114,22 +105,21 @@ fun TourListScreen(
         ) {
             Row {
                 SortButtons(
-                    { viewModel?.setSorting(Sorting.STANDARD) },
-                    { viewModel?.setSorting(Sorting.TOP5) },
-                    state.sorting
+                    { viewModel.setSorting(Sorting.STANDARD) },
+                    { viewModel.setSorting(Sorting.TOP5) },
+                    state.value.sorting
                 )
             }
             Row(Modifier.padding(horizontal = 6.dp)) {
                 ToursList(
-                    tourItems = state.tours,
-                    isLoading = state.isLoading,
-                    sorting = state.sorting,
-                    getSortedTours = { viewModel?.getSortedTours() }
+                    tourItems = sortedTours,
+                    isLoading = state.value.isLoading,
+                    viewModel,
                 ) { itemId ->
                     onNavigationRequested(itemId)
                 }
             }
-            if (state.isLoading) LoadingBar()
+            if (state.value.isLoading) LoadingBar()
         }
     }
 }
@@ -227,7 +217,7 @@ fun SortButtons(
                     ),
                     shape = MaterialTheme.shapes.extraSmall
                 )
-                .clickable(onClick = onLeftClick),
+                .clickable(onClick = { onLeftClick() }),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "ALL", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -249,7 +239,7 @@ fun SortButtons(
                     ),
                     shape = MaterialTheme.shapes.extraSmall
                 )
-                .clickable(onClick = onRightClick),
+                .clickable(onClick = { onRightClick() }),
             contentAlignment = Alignment.Center
         ) {
             Text(text = "FAB 5", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -262,8 +252,7 @@ fun SortButtons(
 fun ToursList(
     tourItems: List<TourItem>,
     isLoading: Boolean,
-    sorting: Sorting,
-    getSortedTours: () -> List<TourItem>?,
+    viewModel: TourListViewModel,
     onItemClicked: (id: String) -> Unit = { }
 ) {
     // Handle Empty List
@@ -271,21 +260,11 @@ fun ToursList(
         EmptyList()
     }
 
-    var sortedItems by remember(tourItems, sorting) {
-        mutableStateOf(getSortedTours() ?: tourItems)
-    }
-
-    LaunchedEffect(tourItems, sorting) {
-        sortedItems = getSortedTours() ?: tourItems
-    }
-
-
-
     LazyColumn(
         contentPadding = PaddingValues(bottom = 6.dp),
     ) {
-        items(sortedItems) { item ->
-            TourItemRow(item = item, onItemClicked = onItemClicked)
+        items(tourItems) { item ->
+            TourItemRow(item = item, viewModel, onItemClicked = onItemClicked)
         }
     }
 }
@@ -339,7 +318,7 @@ fun EmptyList() {
 @Composable
 fun TourItemRow(
     item: TourItem,
-    iconTransformationBuilder: ImageRequest.Builder.() -> Unit = { },
+    viewModel: TourListViewModel,
     onItemClicked: (id: String) -> Unit = { }
 ) {
     Row(modifier = Modifier
@@ -360,12 +339,10 @@ fun TourItemRow(
             onItemClicked(item.id)
         }) {
         Box(modifier = Modifier.align(alignment = Alignment.CenterVertically)) {
-            TourItemThumbnail(item.thumb, iconTransformationBuilder)
+            TourItemThumbnail(item.thumb, viewModel)
         }
         TourItemDetails(
-            item = item, modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterVertically)
+            item = item
         )
     }
 
@@ -373,7 +350,7 @@ fun TourItemRow(
 
 @Composable
 fun TourItemDetails(
-    item: TourItem?, modifier: Modifier
+    item: TourItem?
 ) {
     Column(
         Modifier
@@ -439,11 +416,8 @@ fun TourItemDetails(
 @Composable
 fun TourItemThumbnail(
     thumbnailUrl: String,
-    iconTransformationBuilder: ImageRequest.Builder.() -> Unit
+    viewModel: TourListViewModel
 ) {
-    var imageState: AsyncImagePainter.State
-            by remember { mutableStateOf(AsyncImagePainter.State.Empty) }
-
     Box(
         modifier = Modifier
             .wrapContentHeight(),
@@ -460,23 +434,66 @@ fun TourItemThumbnail(
             Icon(imageVector = Icons.Filled.Face, contentDescription = "loading")
         }
 
-        AsyncImage(
-            model = thumbnailUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(100.dp)
-                .height(50.dp)
-                .wrapContentHeight()
-                .padding(horizontal = 6.dp)
-                .border(
-                    border = BorderStroke(
-                        2.dp,
-                        MaterialTheme.colorScheme.primary
-                    ),
-                    shape = MaterialTheme.shapes.extraSmall
-                )
-        )
+        val cachedImage = viewModel.getCachedImage(thumbnailUrl)
+        if (cachedImage != null) {
+            Image(
+                painter = BitmapPainter(cachedImage.toBitmap().asImageBitmap()),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(50.dp)
+                    .wrapContentHeight()
+                    .padding(horizontal = 6.dp)
+                    .border(
+                        border = BorderStroke(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary
+                        ),
+                        shape = MaterialTheme.shapes.extraSmall
+                    )
+            )
+        } else {
+            // Load the image using Coil if not cached
+            Image(
+                painter = rememberAsyncImagePainter(model = thumbnailUrl),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(50.dp)
+                    .wrapContentHeight()
+                    .padding(horizontal = 6.dp)
+                    .border(
+                        border = BorderStroke(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary
+                        ),
+                        shape = MaterialTheme.shapes.extraSmall
+                    )
+            )
+        }
+//        SubcomposeAsyncImage(
+//            model = thumbnailUrl,
+//            contentDescription = null,
+//            error = {
+//                Icon(
+//                    imageVector = Icons.Default.Warning,
+//                    contentDescription = "Error loading image"
+//                )
+//            },
+//            contentScale = ContentScale.Fit,
+//            modifier = Modifier
+//                .width(100.dp)
+//                .height(50.dp)
+//                .wrapContentHeight()
+//                .padding(horizontal = 6.dp)
+//                .border(
+//                    border = BorderStroke(
+//                        2.dp,
+//                        MaterialTheme.colorScheme.primary
+//                    ),
+//                    shape = MaterialTheme.shapes.extraSmall
+//                )
+//        )
 //                Image(
 //                    painter = painter,
 //                    contentScale = ContentScale.Crop,
@@ -517,9 +534,8 @@ fun TourItemThumbnail(
 @Composable
 fun ListPreview() {
     AppTheme {
-        val viewModel = TourListViewModel(null, null)
-        viewModel.state = ToursContract.State(
-            tours = listOf(
+        val viewModel = providePreviewViewModel(
+            list = listOf(
                 TourItem(
                     id = "0",
                     title = "Tour 1",
@@ -560,15 +576,42 @@ fun ListPreview() {
 @Preview(showBackground = true)
 @Composable
 fun EmptyPreview() {
+    val viewModel = providePreviewViewModel()
     AppTheme {
-        TourListScreen(ToursContract.State(tours = listOf()), null, TourListViewModel(null, null), { })
+        TourListScreen(
+            viewModel.state,
+            null,
+            viewModel,
+            { }
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun LoadingPreview() {
+    val viewModel = providePreviewViewModel()
+    viewModel._state.value.isLoading = true
     AppTheme {
-        TourListScreen(ToursContract.State(isLoading = true), null, null, { })
+        TourListScreen(
+            viewModel.state,
+            null,
+            viewModel,
+            { }
+        )
     }
+}
+
+@Composable
+private fun providePreviewViewModel(list: List<TourItem> = listOf()): TourListViewModel {
+    val viewModel = TourListViewModel(null, null)
+    viewModel._state = remember {
+        mutableStateOf(
+            ToursContract.State(
+                tours = list
+            )
+        )
+    }
+
+    return viewModel
 }

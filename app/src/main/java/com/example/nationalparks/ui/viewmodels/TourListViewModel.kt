@@ -1,15 +1,19 @@
 package com.example.nationalparks.ui.viewmodels
 
 import android.content.Context
+import android.graphics.drawable.Drawable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.nationalparks.model.TourItem
 import com.example.nationalparks.model.data.TourRemoteSource
 import com.example.nationalparks.ui.compose.contracts.ToursContract
@@ -30,15 +34,18 @@ enum class Sorting {
 class TourListViewModel @Inject constructor(private val remoteSource: TourRemoteSource?,
                                             @ApplicationContext private val context: Context?): ViewModel() {
 
-    var state by mutableStateOf(
+    var _state = mutableStateOf(
         ToursContract.State(
             tours = listOf(),
             isLoading = true,
             sorting = Sorting.STANDARD
         )
     )
-        set // for Preview
+
+    val state: State<ToursContract.State> get() = _state
     // TODO: add interface to overwrite in view for preview
+
+    val allTours: List<TourItem> = listOf()
 
     var effects = Channel<ToursContract.Effect>(UNLIMITED)
         private set
@@ -47,40 +54,33 @@ class TourListViewModel @Inject constructor(private val remoteSource: TourRemote
         viewModelScope.launch {
             getTours()
             if (context != null) {
-                preloadImages(context, state.tours.map { it.thumb })
+                preloadImages(context, state.value.tours.map { it.thumb })
             }
         }
     }
 
     private suspend fun getTours() {
-        val tours = remoteSource?.getTours() ?: state.tours
+        val tours = remoteSource?.getTours() ?: state.value.tours
         viewModelScope.launch {
-            state = state.copy(tours = tours, isLoading = false)
+            _state.value = _state.value.copy(tours = tours, isLoading = false)
             effects.send(ToursContract.Effect.DataWasLoaded)
         }
     }
 
     fun getSortedTours(): List<TourItem> {
-        return sortTours(state.tours)
-    }
-
-    fun sortTours(tours: List<TourItem>): List<TourItem> {
-        if (tours.isEmpty()) return listOf()
-
-        return if (state.sorting == Sorting.STANDARD) {
-            tours
-        } else {
-            tours.subList(0, 4)
+        return when (_state.value.sorting) {
+            Sorting.STANDARD -> _state.value.tours.sortedBy { it.title } // TODO: Ask client how full list should be sorted
+            Sorting.TOP5 -> _state.value.tours.sortedByDescending { it.price }.take(5)
         }
     }
 
     fun setSorting(sorting: Sorting) {
-        if (state.sorting != sorting) {
-            state.sorting = sorting
-        }
+        _state.value = _state.value.copy(sorting = sorting)
     }
 
-    suspend fun preloadImages(context: Context, urls: List<String>) {
+    private val imageCache = mutableMapOf<String, Drawable>()
+
+    private suspend fun preloadImages(context: Context, urls: List<String>) {
         val imageLoader = ImageLoader(context)
 
         urls.forEach { url ->
@@ -91,8 +91,15 @@ class TourListViewModel @Inject constructor(private val remoteSource: TourRemote
                 .build()
 
             withContext(Dispatchers.IO) {
-                imageLoader.execute(request)
+                val result = (imageLoader.execute(request) as? SuccessResult)?.drawable
+                if (result != null) {
+                    imageCache[url] = result
+                }
             }
         }
+    }
+
+    fun getCachedImage(url: String): Drawable? {
+        return imageCache[url]
     }
 }
