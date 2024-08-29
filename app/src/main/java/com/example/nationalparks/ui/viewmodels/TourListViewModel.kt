@@ -60,22 +60,21 @@ class TourListViewModel @Inject constructor(private val remoteSource: TourRemote
     }
 
     private suspend fun getTours() {
-        val tours = remoteSource?.getTours() ?: state.value.tours
-        viewModelScope.launch {
-            _state.value = _state.value.copy(tours = tours, isLoading = false)
-            effects.send(ToursContract.Effect.DataWasLoaded)
-        }
-    }
-
-    fun getSortedTours(): List<TourItem> {
-        return when (_state.value.sorting) {
-            Sorting.STANDARD -> _state.value.tours.sortedBy { it.title } // TODO: Ask client how full list should be sorted
-            Sorting.TOP5 -> _state.value.tours.sortedByDescending { it.price }.take(5)
-        }
+        val tours = if (state.value.sorting == Sorting.STANDARD)
+            remoteSource?.getTours() ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
+        else
+            remoteSource?.getTop5Tours() ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
+        _state.value = _state.value.copy(tours = tours, isLoading = false)
+        effects.send(ToursContract.Effect.DataWasLoaded)
     }
 
     fun setSorting(sorting: Sorting) {
-        _state.value = _state.value.copy(sorting = sorting)
+        if (sorting != state.value.sorting) {
+            _state.value = _state.value.copy(sorting = sorting)
+            viewModelScope.launch {
+                getTours()
+            }
+        }
     }
 
     private val imageCache = mutableMapOf<String, Drawable>()

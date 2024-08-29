@@ -77,9 +77,6 @@ fun TourListScreen(
     onNavigationRequested: (itemId: String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val sortedTours = remember(state.value.sorting, state.value.tours) {
-        viewModel.getSortedTours()
-    }
 
     Scaffold(
         modifier = Modifier
@@ -112,7 +109,7 @@ fun TourListScreen(
             }
             Row(Modifier.padding(horizontal = 6.dp)) {
                 ToursList(
-                    tourItems = sortedTours,
+                    tourItems = state.value.tours,
                     isLoading = state.value.isLoading,
                     viewModel,
                 ) { itemId ->
