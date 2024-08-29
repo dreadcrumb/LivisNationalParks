@@ -1,15 +1,18 @@
-package com.example.livisnationalparks.ui.compose.contracts
+package com.example.nationalparks.ui.compose.contracts
 
-import com.example.livisnationalparks.model.TourItem
+import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.ui.viewmodels.Sorting
 
 class ToursContract {
 
     data class State(
         val tours: List<TourItem> = listOf(),
-        val isLoading: Boolean = false
+        val isLoading: Boolean = false,
+        var sorting: Sorting = Sorting.STANDARD
     )
 
     sealed class Effect {
         object DataWasLoaded: Effect()
+        object SortingChanged: Effect()
     }
 }

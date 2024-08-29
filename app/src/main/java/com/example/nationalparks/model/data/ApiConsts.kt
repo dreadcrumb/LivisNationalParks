@@ -1,5 +1,5 @@
-package com.example.livisnationalparks.model.data
+package com.example.nationalparks.model.data
 
 object API {
-    const val API_URL = "https://bitsfabrik.com/projekte/imaginary/api/tours/"
+    const val API_URL = "https://bitsfabrik.com"
 }

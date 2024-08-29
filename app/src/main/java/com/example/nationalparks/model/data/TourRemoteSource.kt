@@ -1,9 +1,11 @@
-package com.example.livisnationalparks.model.data
+package com.example.nationalparks.model.data
 
-import com.example.livisnationalparks.model.TourItem
-import com.example.livisnationalparks.model.response.TourResponse
+import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.model.response.ToursResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,17 +22,26 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
         return@withContext cachedTours
     }
 
-    private fun List<TourResponse>.mapRemoteToursToItems(): List<TourItem> {
-        return this.map { tour ->
+    private fun ToursResponse.mapRemoteToursToItems(): List<TourItem> {
+        return this.tours.map { tour ->
             TourItem(
                 id = tour.id,
                 title = tour.title,
                 shortDescription = tour.shortDescription,
                 thumb = tour.thumb,
-                startDate = tour.startDate,
-                endDate = tour.endDate,
+                startDate = parseDate(tour.startDate),
+                endDate = parseDate(tour.endDate),
                 price = tour.price
             )
         }
+    }
+
+    private fun parseDate(dateString: String): String {
+        if (dateString.isBlank()) {
+            return "XX"
+        }
+        val offsetDateTime = OffsetDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+        return offsetDateTime.format(formatter)
     }
 }

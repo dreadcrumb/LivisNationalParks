@@ -2,9 +2,9 @@ package com.example.nationalparks.di
 
 import android.content.Context
 import android.util.Log
-import com.example.livisnationalparks.utils.hasNetwork
-import com.example.livisnationalparks.model.data.API.API_URL
-import com.example.livisnationalparks.model.data.TourApi
+import com.example.nationalparks.utils.hasNetwork
+import com.example.nationalparks.model.data.API.API_URL
+import com.example.nationalparks.model.data.TourApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +14,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -54,7 +55,9 @@ class TourApiProvider {
     ): Retrofit {
         Log.i("ApiProvider", "Providing Retrofit")
         return Retrofit.Builder().client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create()).baseUrl(API_URL).build()
+            .baseUrl(API_URL)
+            .addConverterFactory(SimpleXmlConverterFactory.create())
+            .build()
     }
 
     @Provides

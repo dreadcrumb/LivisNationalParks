@@ -1,16 +1,16 @@
-package com.example.livisnationalparks.model.data
+package com.example.nationalparks.model.data
 
-import com.example.livisnationalparks.model.response.TourResponse
+import com.example.nationalparks.model.response.ToursResponse
 import retrofit2.http.GET
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TourApi @Inject constructor(private val service: Service) {
-    suspend fun getTours(): List<TourResponse> = service.getTours()
+    suspend fun getTours(): ToursResponse = service.getTours()
 
     interface Service  {
-        @GET("tours.xml")
-        suspend fun getTours(): List<TourResponse>
+        @GET("projekte/imaginary/api/tours/")
+        suspend fun getTours(): ToursResponse
     }
 }
