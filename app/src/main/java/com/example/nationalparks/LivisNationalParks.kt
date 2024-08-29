@@ -1,7 +1,7 @@
-package com.example.livisnationalparks
+package com.example.nationalparks
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class NationalParks : Application()
+class LivisNationalParks : Application()
