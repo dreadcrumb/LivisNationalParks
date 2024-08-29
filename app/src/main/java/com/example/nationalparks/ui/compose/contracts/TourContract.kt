@@ -7,7 +7,7 @@ class ToursContract {
 
     data class State(
         val tours: List<TourItem> = listOf(),
-        val isLoading: Boolean = false,
+        var isLoading: Boolean = false,
         var sorting: Sorting = Sorting.STANDARD
     )
 

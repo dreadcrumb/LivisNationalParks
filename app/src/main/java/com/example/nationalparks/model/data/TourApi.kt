@@ -8,9 +8,13 @@ import javax.inject.Singleton
 @Singleton
 class TourApi @Inject constructor(private val service: Service) {
     suspend fun getTours(): ToursResponse = service.getTours()
+    suspend fun getTop5Tours(): ToursResponse = service.getTop5Tours()
 
     interface Service  {
         @GET("projekte/imaginary/api/tours/")
         suspend fun getTours(): ToursResponse
+
+        @GET("projekte/imaginary/api/tours/top5/")
+        suspend fun getTop5Tours(): ToursResponse
     }
 }
