@@ -1,9 +1,13 @@
 package com.example.nationalparks.ui.viewmodels
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +15,9 @@ import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.example.nationalparks.model.ContactItem
 import com.example.nationalparks.model.data.TourRemoteSource
+import com.example.nationalparks.model.response.ContactResponse
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.TourDetailsContract
 import com.example.nationalparks.ui.compose.navigation.NavigationKeys
@@ -24,7 +30,7 @@ import javax.inject.Inject
 
 interface TourDetailsViewModelInterface {
     val state: State<TourDetailsContract.State>
-    fun getImage(): Drawable?
+    fun callCompany()
 }
 
 @HiltViewModel
@@ -36,12 +42,13 @@ class TourDetailsViewModel @Inject constructor(
     var _state = mutableStateOf(
         TourDetailsContract.State(
             tour = null,
+            image = null,
+            phoneNumber = "",
             loadingState = LoadingState.LOADING
         )
     )
 
     override val state: State<TourDetailsContract.State> get() = _state
-    private var cachedImage: Drawable? = null
 
     init {
         viewModelScope.launch {
@@ -49,11 +56,16 @@ class TourDetailsViewModel @Inject constructor(
             if (context != null && state.value.tour != null) {
                 loadImage(context, state.value.tour!!.image)
             }
+            getPhoneNumber()
         }
     }
 
-    override fun getImage(): Drawable? {
-        return cachedImage
+    override fun callCompany() {
+        val phone = state.value.phoneNumber
+        val intent = Intent(Intent.ACTION_DIAL).apply {
+            data = Uri.parse(phone)
+        }
+        context?.startActivity(intent)
     }
 
     private suspend fun getTourDetails() {
@@ -82,8 +94,12 @@ class TourDetailsViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             val result = (imageLoader.execute(request) as? SuccessResult)?.drawable
             if (result != null) {
-                cachedImage = result
+                _state.value = _state.value.copy(image = result)
             }
         }
+    }
+
+    private suspend fun getPhoneNumber() {
+        _state.value = _state.value.copy(phoneNumber = remoteSource?.getContactDetails()?.phone ?: "")
     }
 }

@@ -1,7 +1,9 @@
 package com.example.nationalparks.model.data
 
+import com.example.nationalparks.model.ContactItem
 import com.example.nationalparks.model.TourDetailsItem
 import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.model.response.ContactResponse
 import com.example.nationalparks.model.response.TourDetailsResponse
 import com.example.nationalparks.model.response.ToursResponse
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +25,10 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
 
     suspend fun getTourDetails(id: Int): TourDetailsItem = withContext(Dispatchers.IO) {
         return@withContext tourApi.getTourDetails(id).mapRemoteTourDetailsToItem()
+    }
+
+    suspend fun getContactDetails(): ContactItem = withContext(Dispatchers.IO) {
+        return@withContext tourApi.getContactDetails().mapToItem()
     }
 
     private fun List<ToursResponse>.mapRemoteToursToItems(): List<TourItem> {
@@ -50,6 +56,15 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
             startDate = parseDate(this.startDate),
             endDate = parseDate(this.endDate),
             price = this.price
+        )
+    }
+
+    private fun ContactResponse.mapToItem(): ContactItem {
+        return ContactItem(
+            companyName = this.companyName,
+            street = this.street,
+            country = this.country,
+            phone = this.phone,
         )
     }
 

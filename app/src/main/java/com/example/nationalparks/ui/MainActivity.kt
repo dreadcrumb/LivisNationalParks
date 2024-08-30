@@ -4,26 +4,40 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.nationalparks.model.data.TourRemoteSource
 import com.example.nationalparks.ui.compose.navigation.NavigationKeys
 import com.example.nationalparks.ui.compose.navigation.TourDetailDestination
 import com.example.nationalparks.ui.compose.navigation.TourListDestination
 import com.example.nationalparks.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
+
+    @Inject lateinit var remoteSource: TourRemoteSource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        cacheContactDetails()
         setContent {
             AppTheme {
                 NationalParksApp()
             }
+        }
+    }
+
+    private fun cacheContactDetails() {
+        lifecycleScope.launch {
+            remoteSource.getContactDetails()
         }
     }
 }

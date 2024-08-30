@@ -1,5 +1,7 @@
 package com.example.nationalparks.ui.compose.views
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -27,13 +28,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,64 +56,76 @@ fun TourDetailsScreen(
 ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
-        Scaffold(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                Column {
-                    TourDetailsAppBar(
-                        viewModel.state.value.tour?.title,
-                        backAction
-                    )
-                    HorizontalDivider(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 6.dp),
-                        thickness = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .padding(10.dp)
-            ) {
-                TourImage(
-                    modifier = Modifier
+    Scaffold(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            Column {
+                TourDetailsAppBar(
+                    viewModel.state.value.tour?.title,
+                    backAction
+                )
+                HorizontalDivider(
+                    Modifier
                         .fillMaxWidth()
-                        .border(
-                            border = BorderStroke(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary
-                            ),
-                            shape = MaterialTheme.shapes.extraSmall
+                        .padding(bottom = 6.dp),
+                    thickness = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(10.dp)
+        ) {
+            TourImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        border = BorderStroke(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary
                         ),
-                    viewModel = viewModel
-                )
+                        shape = MaterialTheme.shapes.extraSmall
+                    ),
+                viewModel = viewModel
+            )
 
+            Text(
+                text = viewModel.state.value.tour?.title ?: "",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+            Text(
+                text = viewModel.state.value.tour?.description ?: "",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(id = R.string.bookable),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+            Row {
                 Text(
-                    text = viewModel.state.value.tour?.title ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 12.dp)
+                    text = viewModel.state.value.tour?.startDate ?: "",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Text(text = viewModel.state.value.tour?.description ?: "", style = MaterialTheme.typography.bodyMedium)
+                Text(text = " - ", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = stringResource(id = R.string.bookable),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 12.dp)
+                    text = viewModel.state.value.tour?.endDate ?: "",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Row {
-                    Text(text = viewModel.state.value.tour?.startDate ?: "", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = " - ", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = viewModel.state.value.tour?.endDate ?: "", style = MaterialTheme.typography.bodyMedium)
-                }
-                CallButton({})
+            }
+            CallButton {
+                startCall(context, phoneNumber = viewModel.state.value.phoneNumber)
             }
         }
+    }
     if (viewModel.state.value.loadingState == LoadingState.LOADING) LoadingBar()
 }
 
@@ -155,7 +168,7 @@ fun TourImage(
     modifier: Modifier = Modifier,
     viewModel: TourDetailsViewModelInterface
 ) {
-    val cachedImage = viewModel.getImage()
+    val cachedImage = viewModel.state.value.image
     if (cachedImage != null) {
         Image(
             painter = BitmapPainter(cachedImage.toBitmap().asImageBitmap()),
@@ -212,6 +225,13 @@ fun CallButton(call: () -> Unit) {
     }
 }
 
+private fun startCall(context: android.content.Context, phoneNumber: String) {
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = Uri.parse("tel:$phoneNumber")
+    }
+    context.startActivity(intent)
+}
+
 @Preview
 @Composable
 fun DetailsPreview() {
@@ -236,7 +256,8 @@ private fun providePreviewViewModel(): TourDetailsViewModel {
                     startDate = "01.01.2000 15:00",
                     endDate = "01.01.2000 17:00",
                     price = 85.0
-                )
+                ),
+                phoneNumber = "+436661234567"
             )
         )
     }

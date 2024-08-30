@@ -1,6 +1,7 @@
 package com.example.nationalparks.model.data
 
 import android.content.Context
+import com.example.nationalparks.model.response.ContactResponse
 import com.example.nationalparks.model.response.TourDetailsResponse
 import com.example.nationalparks.model.response.ToursResponse
 import com.example.nationalparks.utils.getScreenWidth
@@ -16,6 +17,7 @@ class TourApi @Inject constructor(
     private val service: Service,
     @ApplicationContext private val context: Context
 ) {
+    // Tours
     suspend fun getTours(): List<ToursResponse> = service.getTours()
     suspend fun getTop5Tours(): List<ToursResponse> = service.getTop5Tours()
     suspend fun getTourDetails(id: Int): TourDetailsResponse = service.getTourDetails(
@@ -23,6 +25,10 @@ class TourApi @Inject constructor(
         w = getScreenWidth(context),
         h = getScreenWidth(context) / 2
     )
+
+    // Other
+    // TODO: Make own api class for non-tours?
+    suspend fun getContactDetails(): ContactResponse = service.getContactDetails()
 
     interface Service {
         @Headers("Accept: application/json")
@@ -40,5 +46,9 @@ class TourApi @Inject constructor(
             @Query("w") w: Int,
             @Query("h") h: Int
         ): TourDetailsResponse
+
+        @Headers("Accept: application/json")
+        @GET("projekte/imaginary/api/contact/")
+        suspend fun getContactDetails(): ContactResponse
     }
 }
