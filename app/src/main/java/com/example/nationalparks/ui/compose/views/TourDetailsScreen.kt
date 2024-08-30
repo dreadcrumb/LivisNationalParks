@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,20 +58,15 @@ fun TourDetailsScreen(
     showTopbar: Boolean,
     backAction: () -> Unit
 ) {
-//    LaunchedEffect(true) {
-//        viewModel.initialize(false)
-//    }
-//
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
     Scaffold(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (showTopbar) {
-                Column {
+                Column(Modifier.background(MaterialTheme.colorScheme.background),) {
                     TourDetailsAppBar(
                         viewModel.state.value.tour?.title,
                         backAction
@@ -89,6 +85,8 @@ fun TourDetailsScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -108,26 +106,31 @@ fun TourDetailsScreen(
             Text(
                 text = viewModel.state.value.tour?.title ?: "",
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(top = 12.dp)
             )
             Text(
                 text = viewModel.state.value.tour?.description ?: "",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondary,
             )
             Text(
                 text = stringResource(id = R.string.bookable),
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.padding(top = 12.dp)
             )
             Row {
                 Text(
                     text = viewModel.state.value.tour?.startDate ?: "",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondary,
                 )
-                Text(text = " - ", style = MaterialTheme.typography.bodyMedium)
+                Text(text = " - ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondary,)
                 Text(
                     text = viewModel.state.value.tour?.endDate ?: "",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondary,
                 )
             }
             CallButton {
@@ -143,11 +146,11 @@ fun TourDetailsScreen(
 fun TourDetailsAppBar(title: String?, backAction: () -> Unit) {
     TopAppBar(
         colors = TopAppBarColors(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.onPrimary,
         ),
         modifier = Modifier,
         navigationIcon = {
@@ -157,7 +160,7 @@ fun TourDetailsAppBar(title: String?, backAction: () -> Unit) {
                     contentDescription = stringResource(
                         id = R.string.navigate_back
                     ),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },

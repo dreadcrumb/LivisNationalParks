@@ -67,11 +67,12 @@ fun TourListScreen(
 
     Scaffold(
         modifier = Modifier
+            .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (showTopElements) {
-                Column {
+                Column(Modifier.background(MaterialTheme.colorScheme.background),) {
                     ToursAppBar()
                     HorizontalDivider(
                         Modifier
@@ -87,7 +88,9 @@ fun TourListScreen(
 
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background),
         ) {
             if (showTopElements) {
                 Row {
@@ -128,7 +131,7 @@ fun SortButtons(
                 .fillMaxSize()
                 .background(
                     if (sorting == Sorting.STANDARD)
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.tertiary
                     else
                         MaterialTheme.colorScheme.primaryContainer
                 )
@@ -150,7 +153,7 @@ fun SortButtons(
                 .fillMaxSize()
                 .background(
                     if (sorting == Sorting.TOP5)
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.tertiary
                     else
                         MaterialTheme.colorScheme.primaryContainer
                 )

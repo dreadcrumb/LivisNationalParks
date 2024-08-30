@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LoadingBar() {
     Box(
-        contentAlignment = Alignment.Center, modifier = Modifier.size(500.dp)
+        contentAlignment = Alignment.Center, modifier = Modifier.size(250.dp)
     ) {
-        CircularProgressIndicator(Modifier.fillMaxSize())
+        CircularProgressIndicator(Modifier.size(250.dp))
     }
 }

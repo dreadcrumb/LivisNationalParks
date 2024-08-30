@@ -92,6 +92,7 @@ fun LandscapeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.imaginary_logo),

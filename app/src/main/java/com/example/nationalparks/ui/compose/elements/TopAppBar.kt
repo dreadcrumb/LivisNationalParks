@@ -34,11 +34,11 @@ fun ToursAppBar() {
     }
     TopAppBar(
         colors = TopAppBarColors(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.onPrimary,
+            MaterialTheme.colorScheme.onPrimary,
         ),
         modifier = Modifier,
         navigationIcon = {
@@ -69,7 +69,7 @@ fun ToursAppBar() {
                 onDismissRequest = { menuExpanded = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Our client didnt actually tell us what to do with this button so here we are") },
+                    text = { Text("Our client didn't actually tell us what to do with this button so here we are (Probably for sorting, need to ask)") },
                     onClick = { /* TODO */ },
                 )
             }
