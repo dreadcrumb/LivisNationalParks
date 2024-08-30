@@ -10,4 +10,7 @@
     <string name="price">PRICE: %s€</string>
     <string name="navigate_back">Navigate Back</string>
     <string name="not_found">Not Found</string>
+    <string name="bookable">Bookable</string>
+    <string name="call_button">Call to Book</string>
+    <string name="call_description">Call Button</string>
 </resources>

@@ -4,15 +4,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,43 +54,69 @@ fun TourDetailsScreen(
 ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val tour by remember { mutableStateOf(viewModel.state.value.tour) }
 
-    Scaffold(
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            Column {
-                TourDetailsAppBar(
-                    viewModel.state.value.tour?.title,
-                    backAction
-                )
-                HorizontalDivider(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    thickness = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        },
-    ) { paddingValues ->
-        Column(
+    if (tour == null) {
+        // TODO
+    } else {
+
+        Scaffold(
             modifier = Modifier
-                .padding(paddingValues)
-        ) {
-            TourImage(
+                .background(MaterialTheme.colorScheme.background),
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                Column {
+                    TourDetailsAppBar(
+                        viewModel.state.value.tour?.title,
+                        backAction
+                    )
+                    HorizontalDivider(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        thickness = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+        ) { paddingValues ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-                    .border(
-                        border = BorderStroke(
-                            2.dp,
-                            MaterialTheme.colorScheme.primary
+                    .padding(paddingValues)
+                    .padding(10.dp)
+            ) {
+                TourImage(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .border(
+                            border = BorderStroke(
+                                2.dp,
+                                MaterialTheme.colorScheme.primary
+                            ),
+                            shape = MaterialTheme.shapes.extraSmall
                         ),
-                        shape = MaterialTheme.shapes.extraSmall
-                    ),
-                viewModel = viewModel)
+                    viewModel = viewModel
+                )
+
+                Text(
+                    text = tour!!.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                Text(text = tour!!.description, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(id = R.string.bookable),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                Row {
+                    Text(text = tour!!.startDate, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = " - ", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = tour!!.endDate, style = MaterialTheme.typography.bodyMedium)
+                }
+                CallButton({})
+            }
         }
     }
 }
@@ -147,6 +177,44 @@ fun TourImage(
     }
 }
 
+@Composable
+fun CallButton(call: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .border(
+                border = BorderStroke(
+                    2.dp,
+                    MaterialTheme.colorScheme.primary
+                ),
+                shape = MaterialTheme.shapes.extraSmall
+            )
+            .clickable { call() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+                Icon(
+                    imageVector = Icons.Filled.Call,
+                    contentDescription = stringResource(id = R.string.call_description),
+                    modifier = Modifier.padding(start = 30.dp).size(50.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 80.dp), // Padding = icon size + icon padding
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.call_button),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun DetailsPreview() {
@@ -169,7 +237,7 @@ private fun providePreviewViewModel(): TourDetailsViewModel {
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Rhino",
                     image = "https://dummyimage.com/400x200/ff7f7f/333333?text=Rhino",
                     startDate = "01.01.2000 15:00",
-                    endDate = "01.01.2000 15:00",
+                    endDate = "01.01.2000 17:00",
                     price = 85.0
                 )
             )
