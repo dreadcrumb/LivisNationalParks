@@ -7,12 +7,7 @@ class ToursContract {
 
     data class State(
         val tours: List<TourItem> = listOf(),
-        var isLoading: Boolean = false,
+        var loadingState: LoadingState = LoadingState.LOADING,
         var sorting: Sorting = Sorting.STANDARD
     )
-
-    sealed class Effect {
-        object DataWasLoaded : Effect()
-        object SortingChanged : Effect()
-    }
 }

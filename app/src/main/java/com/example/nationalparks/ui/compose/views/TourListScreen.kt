@@ -58,19 +58,19 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.rememberAsyncImagePainter
 import com.example.nationalparks.R
 import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.ToursContract
 import com.example.nationalparks.ui.compose.utils.hasNetworkComposable
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.Sorting
 import com.example.nationalparks.ui.viewmodels.TourListViewModel
+import com.example.nationalparks.ui.viewmodels.TourListViewModelInterface
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 @Composable
 fun TourListScreen(
-    state: State<ToursContract.State>,
-    effectFlow: Flow<ToursContract.Effect>?,
-    viewModel: TourListViewModel,
+    viewModel: TourListViewModelInterface,
     onNavigationRequested: (itemId: Int) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -101,19 +101,18 @@ fun TourListScreen(
                 SortButtons(
                     { viewModel.setSorting(Sorting.STANDARD) },
                     { viewModel.setSorting(Sorting.TOP5) },
-                    state.value.sorting
+                    viewModel.state.value.sorting
                 )
             }
             Row(Modifier.padding(horizontal = 6.dp)) {
                 ToursList(
-                    tourItems = state.value.tours,
-                    isLoading = state.value.isLoading,
+                    tourItems = viewModel.state.value.tours,
                     viewModel,
                 ) { itemId ->
                     onNavigationRequested(itemId)
                 }
             }
-            if (state.value.isLoading) LoadingBar()
+            if (viewModel.state.value.loadingState == LoadingState.LOADING) LoadingBar()
         }
     }
 }
@@ -245,12 +244,11 @@ fun SortButtons(
 @Composable
 fun ToursList(
     tourItems: List<TourItem>,
-    isLoading: Boolean,
-    viewModel: TourListViewModel,
+    viewModel: TourListViewModelInterface,
     onItemClicked: (id: Int) -> Unit = { }
 ) {
     // Handle Empty List
-    if (!isLoading && tourItems.isEmpty()) {
+    if (tourItems.isEmpty()) {
         EmptyList()
     }
 
@@ -312,7 +310,7 @@ fun EmptyList() {
 @Composable
 fun TourItemRow(
     item: TourItem,
-    viewModel: TourListViewModel,
+    viewModel: TourListViewModelInterface,
     onItemClicked: (id: Int) -> Unit = { }
 ) {
     Row(modifier = Modifier
@@ -410,7 +408,7 @@ fun TourItemDetails(
 @Composable
 fun TourItemThumbnail(
     thumbnailUrl: String,
-    viewModel: TourListViewModel
+    viewModel: TourListViewModelInterface
 ) {
     Box(
         modifier = Modifier
@@ -560,8 +558,6 @@ fun ListPreview() {
             )
         )
         TourListScreen(
-            viewModel.state,
-            viewModel.effects.receiveAsFlow(),
             viewModel,
             { })
     }
@@ -573,8 +569,6 @@ fun EmptyPreview() {
     val viewModel = providePreviewViewModel()
     AppTheme {
         TourListScreen(
-            viewModel.state,
-            null,
             viewModel,
             { }
         )
@@ -585,11 +579,9 @@ fun EmptyPreview() {
 @Composable
 fun LoadingPreview() {
     val viewModel = providePreviewViewModel()
-    viewModel._state.value.isLoading = true
+    viewModel._state.value.loadingState = LoadingState.LOADING
     AppTheme {
         TourListScreen(
-            viewModel.state,
-            null,
             viewModel,
             { }
         )
@@ -602,7 +594,8 @@ private fun providePreviewViewModel(list: List<TourItem> = listOf()): TourListVi
     viewModel._state = remember {
         mutableStateOf(
             ToursContract.State(
-                tours = list
+                tours = list,
+                loadingState = LoadingState.SUCCESS
             )
         )
     }

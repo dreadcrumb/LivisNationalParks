@@ -8,4 +8,6 @@
     <string name="available_till">Available till</string>
     <string name="tours_loaded">Tours loaded</string>
     <string name="price">PRICE: %s€</string>
+    <string name="navigate_back">Navigate Back</string>
+    <string name="not_found">Not Found</string>
 </resources>

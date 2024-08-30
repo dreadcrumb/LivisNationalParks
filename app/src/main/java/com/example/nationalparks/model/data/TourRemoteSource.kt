@@ -1,6 +1,8 @@
 package com.example.nationalparks.model.data
 
+import com.example.nationalparks.model.TourDetailsItem
 import com.example.nationalparks.model.TourItem
+import com.example.nationalparks.model.response.TourDetailsResponse
 import com.example.nationalparks.model.response.ToursResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,6 +34,9 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
         return@withContext cachedTop5Tours
     }
 
+    suspend fun getTourDetails(id: Int): TourDetailsItem = withContext(Dispatchers.IO) {
+        return@withContext tourApi.getTourDetails(id).mapRemoteTourDetailsToItem()
+    }
 
     private fun List<ToursResponse>.mapRemoteToursToItems(): List<TourItem> {
         return this.map { tour ->
@@ -47,11 +52,26 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
         }
     }
 
+    private fun TourDetailsResponse.mapRemoteTourDetailsToItem(): TourDetailsItem {
+        return TourDetailsItem(
+            id = this.id,
+            title = this.title,
+            shortDescription = this.shortDescription,
+            description = this.description,
+            thumb = this.thumb,
+            image = this.image,
+            startDate = parseDate(this.startDate),
+            endDate = parseDate(this.endDate),
+            price = this.price
+        )
+    }
+
     private fun parseDate(dateString: String): String {
         if (dateString.isBlank()) {
             return "XX"
         }
-        val offsetDateTime = OffsetDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        val offsetDateTime =
+            OffsetDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
         return offsetDateTime.format(formatter)
     }
