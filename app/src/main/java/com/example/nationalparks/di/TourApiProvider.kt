@@ -14,7 +14,6 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -56,7 +55,7 @@ class TourApiProvider {
         Log.i("ApiProvider", "Providing Retrofit")
         return Retrofit.Builder().client(okHttpClient)
             .baseUrl(API_URL)
-            .addConverterFactory(SimpleXmlConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 

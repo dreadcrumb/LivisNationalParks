@@ -74,7 +74,7 @@ fun TourListScreen(
     state: State<ToursContract.State>,
     effectFlow: Flow<ToursContract.Effect>?,
     viewModel: TourListViewModel,
-    onNavigationRequested: (itemId: String) -> Unit
+    onNavigationRequested: (itemId: Int) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -250,7 +250,7 @@ fun ToursList(
     tourItems: List<TourItem>,
     isLoading: Boolean,
     viewModel: TourListViewModel,
-    onItemClicked: (id: String) -> Unit = { }
+    onItemClicked: (id: Int) -> Unit = { }
 ) {
     // Handle Empty List
     if (!isLoading && tourItems.isEmpty()) {
@@ -316,7 +316,7 @@ fun EmptyList() {
 fun TourItemRow(
     item: TourItem,
     viewModel: TourListViewModel,
-    onItemClicked: (id: String) -> Unit = { }
+    onItemClicked: (id: Int) -> Unit = { }
 ) {
     Row(modifier = Modifier
         .fillMaxSize()
@@ -534,7 +534,7 @@ fun ListPreview() {
         val viewModel = providePreviewViewModel(
             list = listOf(
                 TourItem(
-                    id = "0",
+                    id = 0,
                     title = "Tour 1",
                     shortDescription = "Short Description 1",
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Gorilla",
@@ -543,7 +543,7 @@ fun ListPreview() {
                     price = 20.5
                 ),
                 TourItem(
-                    id = "1",
+                    id = 1,
                     title = "Tour 2",
                     shortDescription = "This is a much longer description to see how this looks",
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Tiger",
@@ -552,7 +552,7 @@ fun ListPreview() {
                     price = 15.0
                 ),
                 TourItem(
-                    id = "2",
+                    id = 2,
                     title = "Tour with a much longer title",
                     shortDescription = "This is a much longer description to see how this looks",
                     thumb = "https://dummyimage.com/400x200/ff7f7f/333333?text=Pig",

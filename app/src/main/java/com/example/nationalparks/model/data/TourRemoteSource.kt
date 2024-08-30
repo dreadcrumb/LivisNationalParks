@@ -33,8 +33,8 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
     }
 
 
-    private fun ToursResponse.mapRemoteToursToItems(): List<TourItem> {
-        return this.tours.map { tour ->
+    private fun List<ToursResponse>.mapRemoteToursToItems(): List<TourItem> {
+        return this.map { tour ->
             TourItem(
                 id = tour.id,
                 title = tour.title,
