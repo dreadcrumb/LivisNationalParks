@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,7 +41,9 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.rememberAsyncImagePainter
 import com.example.nationalparks.R
 import com.example.nationalparks.model.TourDetailsItem
+import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.TourDetailsContract
+import com.example.nationalparks.ui.compose.elements.LoadingBar
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModel
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModelInterface
@@ -54,11 +55,6 @@ fun TourDetailsScreen(
 ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val tour by remember { mutableStateOf(viewModel.state.value.tour) }
-
-    if (tour == null) {
-        // TODO
-    } else {
 
         Scaffold(
             modifier = Modifier
@@ -88,7 +84,6 @@ fun TourDetailsScreen(
                 TourImage(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
                         .border(
                             border = BorderStroke(
                                 2.dp,
@@ -100,25 +95,25 @@ fun TourDetailsScreen(
                 )
 
                 Text(
-                    text = tour!!.title,
+                    text = viewModel.state.value.tour?.title ?: "",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 12.dp)
                 )
-                Text(text = tour!!.description, style = MaterialTheme.typography.bodyMedium)
+                Text(text = viewModel.state.value.tour?.description ?: "", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     text = stringResource(id = R.string.bookable),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 12.dp)
                 )
                 Row {
-                    Text(text = tour!!.startDate, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = viewModel.state.value.tour?.startDate ?: "", style = MaterialTheme.typography.bodyMedium)
                     Text(text = " - ", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = tour!!.endDate, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = viewModel.state.value.tour?.endDate ?: "", style = MaterialTheme.typography.bodyMedium)
                 }
                 CallButton({})
             }
         }
-    }
+    if (viewModel.state.value.loadingState == LoadingState.LOADING) LoadingBar()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -194,16 +189,18 @@ fun CallButton(call: () -> Unit) {
             .clickable { call() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-                Icon(
-                    imageVector = Icons.Filled.Call,
-                    contentDescription = stringResource(id = R.string.call_description),
-                    modifier = Modifier.padding(start = 30.dp).size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+        Icon(
+            imageVector = Icons.Filled.Call,
+            contentDescription = stringResource(id = R.string.call_description),
+            modifier = Modifier
+                .padding(start = 30.dp, top = 4.dp, bottom = 4.dp)
+                .size(42.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 80.dp), // Padding = icon size + icon padding
+                .padding(end = 72.dp), // Padding = icon size + icon start padding
             contentAlignment = Alignment.Center
         ) {
             Text(

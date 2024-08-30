@@ -60,6 +60,7 @@ import com.example.nationalparks.R
 import com.example.nationalparks.model.TourItem
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.ToursContract
+import com.example.nationalparks.ui.compose.elements.LoadingBar
 import com.example.nationalparks.ui.compose.utils.hasNetworkComposable
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.Sorting
@@ -159,27 +160,13 @@ fun ToursAppBar() {
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
             ) {
-                // 6
                 DropdownMenuItem(
-                    text = { Text("All Items") },
-                    onClick = { /* TODO */ },
-                )
-                DropdownMenuItem(
-                    text = { Text("Fab 5") },
+                    text = { Text("Our client didnt actually tell us what to do with this button so here we are") },
                     onClick = { /* TODO */ },
                 )
             }
         }
     )
-}
-
-@Composable
-fun LoadingBar() {
-    Box(
-        contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
-    ) {
-        CircularProgressIndicator(Modifier.fillMaxSize())
-    }
 }
 
 @Composable
