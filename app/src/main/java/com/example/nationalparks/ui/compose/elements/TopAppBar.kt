@@ -45,7 +45,7 @@ fun ToursAppBar() {
             Image(
                 modifier = Modifier.size(TopAppBarDefaults.TopAppBarExpandedHeight),
                 painter = painterResource(id = R.drawable.imaginary_logo),
-                contentDescription = "REPLACE"
+                contentDescription = stringResource(id = R.string.logo)
             )
         },
         title = {
@@ -61,7 +61,7 @@ fun ToursAppBar() {
             IconButton(onClick = { menuExpanded = !menuExpanded }) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "More",
+                    contentDescription = stringResource(id = R.string.more),
                 )
             }
             DropdownMenu(
