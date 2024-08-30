@@ -3,11 +3,7 @@ package com.example.nationalparks.ui.viewmodels
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
@@ -31,8 +27,10 @@ enum class Sorting {
 }
 
 @HiltViewModel
-class TourListViewModel @Inject constructor(private val remoteSource: TourRemoteSource?,
-                                            @ApplicationContext private val context: Context?): ViewModel() {
+class TourListViewModel @Inject constructor(
+    private val remoteSource: TourRemoteSource?,
+    @ApplicationContext private val context: Context?
+) : ViewModel() {
 
     var _state = mutableStateOf(
         ToursContract.State(
@@ -61,9 +59,11 @@ class TourListViewModel @Inject constructor(private val remoteSource: TourRemote
 
     private suspend fun getTours() {
         val tours = if (state.value.sorting == Sorting.STANDARD)
-            remoteSource?.getTours() ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
+            remoteSource?.getTours()
+                ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
         else
-            remoteSource?.getTop5Tours() ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
+            remoteSource?.getTop5Tours()
+                ?: listOf() // TODO: ask client if result should be sorted (by name or price f.e.)
         _state.value = _state.value.copy(tours = tours, isLoading = false)
         effects.send(ToursContract.Effect.DataWasLoaded)
     }

@@ -3,7 +3,6 @@ package com.example.nationalparks.ui.compose.navigation
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.nationalparks.ui.compose.navigation.NavigationKeys
 import com.example.nationalparks.ui.compose.views.TourListScreen
 import com.example.nationalparks.ui.viewmodels.TourListViewModel
 import kotlinx.coroutines.flow.receiveAsFlow

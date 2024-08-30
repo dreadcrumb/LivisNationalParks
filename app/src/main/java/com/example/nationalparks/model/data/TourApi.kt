@@ -11,7 +11,7 @@ class TourApi @Inject constructor(private val service: Service) {
     suspend fun getTours(): List<ToursResponse> = service.getTours()
     suspend fun getTop5Tours(): List<ToursResponse> = service.getTop5Tours()
 
-    interface Service  {
+    interface Service {
         @Headers("Accept: application/json")
         @GET("projekte/imaginary/api/tours/")
         suspend fun getTours(): List<ToursResponse>

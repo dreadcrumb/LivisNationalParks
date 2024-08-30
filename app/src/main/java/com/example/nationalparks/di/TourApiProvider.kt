@@ -2,9 +2,9 @@ package com.example.nationalparks.di
 
 import android.content.Context
 import android.util.Log
-import com.example.nationalparks.utils.hasNetwork
 import com.example.nationalparks.model.data.API.API_URL
 import com.example.nationalparks.model.data.TourApi
+import com.example.nationalparks.utils.hasNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

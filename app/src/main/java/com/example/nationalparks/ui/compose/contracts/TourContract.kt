@@ -12,7 +12,7 @@ class ToursContract {
     )
 
     sealed class Effect {
-        object DataWasLoaded: Effect()
-        object SortingChanged: Effect()
+        object DataWasLoaded : Effect()
+        object SortingChanged : Effect()
     }
 }

@@ -1,8 +1,6 @@
 package com.example.nationalparks.model
 
-import java.util.Date
-
-data class TourItem (
+data class TourItem(
     val id: Int,
     val title: String,
     val shortDescription: String,
