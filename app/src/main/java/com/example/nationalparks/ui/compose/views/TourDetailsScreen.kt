@@ -47,7 +47,6 @@ import com.example.nationalparks.model.TourDetailsItem
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.TourDetailsContract
 import com.example.nationalparks.ui.compose.elements.LoadingBar
-import com.example.nationalparks.ui.compose.navigation.OrientationChangedComposable
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModel
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModelInterface
@@ -58,10 +57,10 @@ fun TourDetailsScreen(
     showTopbar: Boolean,
     backAction: () -> Unit
 ) {
-    OrientationChangedComposable(changedToLandscape = { /*TODO*/ }) {
-        
-    }
-    
+//    LaunchedEffect(true) {
+//        viewModel.initialize(false)
+//    }
+//
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 

@@ -7,6 +7,7 @@ class TourDetailsContract {
     data class State(
         val tour: TourDetailsItem? = null,
         val image: Drawable? = null,
+        var useHeight: Boolean = false,
         val phoneNumber: String = "",
         var loadingState: LoadingState = LoadingState.LOADING
     )

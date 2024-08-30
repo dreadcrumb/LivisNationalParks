@@ -15,7 +15,7 @@ import com.example.nationalparks.ui.viewmodels.TourListViewModelInterface
 fun TourListDestination(navController: NavHostController) {
     val viewModel: TourListViewModelInterface = hiltViewModel<TourListViewModel>()
     OrientationChangedComposable(
-        changedToLandscape = { navController.navigate(NavigationKeys.Route.TOURS_LANDSCAPE) },
+        changedToLandscape = { navController.navigate("${NavigationKeys.Route.TOURS_LANDSCAPE}/${-1}") },
         changedToPortrait = {}
     )
     TourListScreen(
@@ -28,23 +28,33 @@ fun TourListDestination(navController: NavHostController) {
 
 @Composable
 fun TourDetailDestination(navController: NavHostController) {
-    val viewModel: TourDetailsViewModelInterface =  hiltViewModel<TourDetailsViewModel>()
+    val viewModel: TourDetailsViewModelInterface = hiltViewModel<TourDetailsViewModel>()
     OrientationChangedComposable(
-        changedToLandscape = { navController.navigate(NavigationKeys.Route.TOURS_LANDSCAPE) },
+        changedToLandscape = { navController.navigate("${NavigationKeys.Route.TOURS_LANDSCAPE}/${viewModel.state.value.tour?.id ?: -1}") },
         changedToPortrait = {}
     )
     TourDetailsScreen(viewModel, true,
-        backAction = { navController.navigateUp() })
+        backAction = { navController.navigate(NavigationKeys.Route.TOUR_LIST) })
 }
 
 @Composable
 fun TourListLandscapeDestination(navController: NavHostController) {
     val listViewModel: TourListViewModelInterface = hiltViewModel<TourListViewModel>()
+    val detailViewModel: TourDetailsViewModelInterface = hiltViewModel<TourDetailsViewModel>()
+
     OrientationChangedComposable(
         changedToLandscape = {},
-        changedToPortrait = { navController.navigate(NavigationKeys.Route.TOUR_LIST) }
+        changedToPortrait = {
+            val itemId = detailViewModel.state.value.tour?.id ?: -1
+            if (itemId == -1) {
+                navController.navigate(NavigationKeys.Route.TOUR_LIST)
+            } else {
+                navController.navigate("${NavigationKeys.Route.TOUR_LIST}/${itemId}")
+            }
+        }
     )
     LandscapeScreen(
-        listViewModel
+        listViewModel,
+        detailViewModel
     )
 }

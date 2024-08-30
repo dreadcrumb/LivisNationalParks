@@ -25,6 +25,7 @@ import javax.inject.Inject
 
 interface TourDetailsViewModelInterface {
     val state: State<TourDetailsContract.State>
+    fun initialize(useHeight: Boolean)
     fun initializeManually(tourId: Int)
     fun callCompany()
 }
@@ -39,6 +40,7 @@ class TourDetailsViewModel @Inject constructor(
         TourDetailsContract.State(
             tour = null,
             image = null,
+            useHeight = false,
             phoneNumber = "",
             loadingState = LoadingState.LOADING
         )
@@ -49,9 +51,7 @@ class TourDetailsViewModel @Inject constructor(
     // Init
 
     init {
-        if (stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID) != null) {
-            loadDetails()
-        }
+        loadDetails()
     }
 
     private fun loadDetails() {
@@ -66,8 +66,17 @@ class TourDetailsViewModel @Inject constructor(
 
     // Interface functions
 
+    override fun initialize(useHeight: Boolean) {
+        val tourId = stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID)
+        if (tourId != null && tourId > -1) {
+            _state.value.useHeight = useHeight
+            loadDetails()
+        }
+    }
+
     override fun initializeManually(tourId: Int) {
         stateHandle?.set(NavigationKeys.Arg.TOUR_ID, tourId)
+        _state.value.useHeight = true
         loadDetails()
     }
 
@@ -86,11 +95,13 @@ class TourDetailsViewModel @Inject constructor(
         if (tourId == null) {
             _state.value = _state.value.copy(loadingState = LoadingState.ERROR)
             return
-        }
+        } else if (tourId < 0) (
+                return
+                )
 
         val tourDetails = remoteSource?.getTourDetails(
             tourId,
-            true
+            useHeight = state.value.useHeight
         )
         if (tourDetails == null) {
             _state.value = _state.value.copy(loadingState = LoadingState.ERROR)

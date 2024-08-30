@@ -58,7 +58,12 @@ private fun NationalParksApp() {
         ) {
             TourDetailDestination(navController)
         }
-        composable(route = NavigationKeys.Route.TOURS_LANDSCAPE) {
+        composable(
+            route = NavigationKeys.Route.TOURS_LANDSCAPE_DETAIL,
+            arguments = listOf(navArgument(NavigationKeys.Arg.TOUR_ID) {
+                type = NavType.IntType
+            })
+        ) {
             TourListLandscapeDestination(navController)
         }
     }

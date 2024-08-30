@@ -14,18 +14,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.nationalparks.R
 import com.example.nationalparks.ui.compose.elements.ToursAppBar
 import com.example.nationalparks.ui.theme.AppTheme
@@ -37,10 +35,9 @@ import com.example.nationalparks.ui.viewmodels.TourListViewModelInterface
 @Composable
 fun LandscapeScreen(
     listViewModel: TourListViewModelInterface,
-    tourId: Int? = null
+    detailsViewModel: TourDetailsViewModelInterface
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background),
@@ -64,7 +61,21 @@ fun LandscapeScreen(
                 .padding(paddingValues)
         ) {
             var selectedTour by remember {
-                mutableStateOf(tourId)
+                mutableIntStateOf(detailsViewModel.state.value.tour?.id ?: -1)
+            }
+            var previous by remember {
+                mutableIntStateOf(selectedTour)
+            }
+            LaunchedEffect(detailsViewModel.state.value.tour) {
+                if (detailsViewModel.state.value.tour != null && selectedTour < 0) {
+                    selectedTour = detailsViewModel.state.value.tour!!.id
+                }
+            }
+            LaunchedEffect(selectedTour) {
+                if (selectedTour != previous) {
+                    previous = selectedTour
+                    detailsViewModel.initializeManually(selectedTour)
+                }
             }
             Box(
                 modifier = Modifier
@@ -91,11 +102,9 @@ fun LandscapeScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 )
-                if (selectedTour != null) {
-                    val detailViewModel: TourDetailsViewModelInterface =  hiltViewModel<TourDetailsViewModel>()
-                    detailViewModel.initializeManually(selectedTour!!)
+                if (selectedTour > -1) {
                     Column {
-                        TourDetailsScreen(viewModel = detailViewModel, false) {}
+                        TourDetailsScreen(viewModel = detailsViewModel, false) {}
                     }
                 }
             }
@@ -114,6 +123,7 @@ fun LandscapePreview() {
     AppTheme {
         LandscapeScreen(
             listViewModel = TourListViewModel(null, null),
+            detailsViewModel = TourDetailsViewModel(null, null, null)
         )
     }
 }
