@@ -13,25 +13,12 @@ import javax.inject.Singleton
 
 @Singleton
 class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
-    private var cachedTours: List<TourItem>? = null
-    private var cachedTop5Tours: List<TourItem>? = null
-
     suspend fun getTours(): List<TourItem> = withContext(Dispatchers.IO) {
-        var cachedTours = cachedTours
-        if (cachedTours == null) {
-            cachedTours = tourApi.getTours().mapRemoteToursToItems()
-            this@TourRemoteSource.cachedTours = cachedTours
-        }
-        return@withContext cachedTours
+        return@withContext tourApi.getTours().mapRemoteToursToItems()
     }
 
     suspend fun getTop5Tours(): List<TourItem> = withContext(Dispatchers.IO) {
-        var cachedTop5Tours = cachedTop5Tours
-        if (cachedTop5Tours == null) {
-            cachedTop5Tours = tourApi.getTop5Tours().mapRemoteToursToItems()
-            this@TourRemoteSource.cachedTop5Tours = cachedTop5Tours
-        }
-        return@withContext cachedTop5Tours
+        return@withContext tourApi.getTop5Tours().mapRemoteToursToItems()
     }
 
     suspend fun getTourDetails(id: Int): TourDetailsItem = withContext(Dispatchers.IO) {
