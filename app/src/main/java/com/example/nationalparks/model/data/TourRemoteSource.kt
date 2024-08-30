@@ -23,8 +23,8 @@ class TourRemoteSource @Inject constructor(private val tourApi: TourApi) {
         return@withContext tourApi.getTop5Tours().mapRemoteToursToItems()
     }
 
-    suspend fun getTourDetails(id: Int): TourDetailsItem = withContext(Dispatchers.IO) {
-        return@withContext tourApi.getTourDetails(id).mapRemoteTourDetailsToItem()
+    suspend fun getTourDetails(id: Int, useHeight: Boolean): TourDetailsItem = withContext(Dispatchers.IO) {
+        return@withContext tourApi.getTourDetails(id, useHeight).mapRemoteTourDetailsToItem()
     }
 
     suspend fun getContactDetails(): ContactItem = withContext(Dispatchers.IO) {

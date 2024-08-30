@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
@@ -45,6 +47,7 @@ import com.example.nationalparks.model.TourDetailsItem
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.TourDetailsContract
 import com.example.nationalparks.ui.compose.elements.LoadingBar
+import com.example.nationalparks.ui.compose.navigation.OrientationChangedComposable
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModel
 import com.example.nationalparks.ui.viewmodels.TourDetailsViewModelInterface
@@ -52,9 +55,13 @@ import com.example.nationalparks.ui.viewmodels.TourDetailsViewModelInterface
 @Composable
 fun TourDetailsScreen(
     viewModel: TourDetailsViewModelInterface,
+    showTopbar: Boolean,
     backAction: () -> Unit
 ) {
-
+    OrientationChangedComposable(changedToLandscape = { /*TODO*/ }) {
+        
+    }
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
@@ -63,18 +70,20 @@ fun TourDetailsScreen(
             .background(MaterialTheme.colorScheme.background),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            Column {
-                TourDetailsAppBar(
-                    viewModel.state.value.tour?.title,
-                    backAction
-                )
-                HorizontalDivider(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    thickness = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            if (showTopbar) {
+                Column {
+                    TourDetailsAppBar(
+                        viewModel.state.value.tour?.title,
+                        backAction
+                    )
+                    HorizontalDivider(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        thickness = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         },
     ) { paddingValues ->
@@ -82,6 +91,7 @@ fun TourDetailsScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(10.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             TourImage(
                 modifier = Modifier
@@ -236,7 +246,7 @@ private fun startCall(context: android.content.Context, phoneNumber: String) {
 @Composable
 fun DetailsPreview() {
     AppTheme {
-        TourDetailsScreen(viewModel = providePreviewViewModel(), {})
+        TourDetailsScreen(viewModel = providePreviewViewModel(), true, {})
     }
 }
 

@@ -14,16 +14,17 @@ import com.example.nationalparks.model.data.TourRemoteSource
 import com.example.nationalparks.ui.compose.navigation.NavigationKeys
 import com.example.nationalparks.ui.compose.navigation.TourDetailDestination
 import com.example.nationalparks.ui.compose.navigation.TourListDestination
+import com.example.nationalparks.ui.compose.navigation.TourListLandscapeDestination
 import com.example.nationalparks.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity: ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
-    @Inject lateinit var remoteSource: TourRemoteSource
+    @Inject
+    lateinit var remoteSource: TourRemoteSource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,9 @@ private fun NationalParksApp() {
             })
         ) {
             TourDetailDestination(navController)
+        }
+        composable(route = NavigationKeys.Route.TOURS_LANDSCAPE) {
+            TourListLandscapeDestination(navController)
         }
     }
 }

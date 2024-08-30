@@ -2,12 +2,9 @@ package com.example.nationalparks.ui.viewmodels
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,9 +12,7 @@ import coil.ImageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.example.nationalparks.model.ContactItem
 import com.example.nationalparks.model.data.TourRemoteSource
-import com.example.nationalparks.model.response.ContactResponse
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.TourDetailsContract
 import com.example.nationalparks.ui.compose.navigation.NavigationKeys
@@ -30,6 +25,7 @@ import javax.inject.Inject
 
 interface TourDetailsViewModelInterface {
     val state: State<TourDetailsContract.State>
+    fun initializeManually(tourId: Int)
     fun callCompany()
 }
 
@@ -50,7 +46,15 @@ class TourDetailsViewModel @Inject constructor(
 
     override val state: State<TourDetailsContract.State> get() = _state
 
+    // Init
+
     init {
+        if (stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID) != null) {
+            loadDetails()
+        }
+    }
+
+    private fun loadDetails() {
         viewModelScope.launch {
             getTourDetails()
             if (context != null && state.value.tour != null) {
@@ -58,6 +62,13 @@ class TourDetailsViewModel @Inject constructor(
             }
             getPhoneNumber()
         }
+    }
+
+    // Interface functions
+
+    override fun initializeManually(tourId: Int) {
+        stateHandle?.set(NavigationKeys.Arg.TOUR_ID, tourId)
+        loadDetails()
     }
 
     override fun callCompany() {
@@ -68,6 +79,8 @@ class TourDetailsViewModel @Inject constructor(
         context?.startActivity(intent)
     }
 
+    // Private functions
+
     private suspend fun getTourDetails() {
         val tourId = stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID)
         if (tourId == null) {
@@ -75,7 +88,10 @@ class TourDetailsViewModel @Inject constructor(
             return
         }
 
-        val tourDetails = remoteSource?.getTourDetails(tourId)
+        val tourDetails = remoteSource?.getTourDetails(
+            tourId,
+            true
+        )
         if (tourDetails == null) {
             _state.value = _state.value.copy(loadingState = LoadingState.ERROR)
             return
@@ -100,6 +116,7 @@ class TourDetailsViewModel @Inject constructor(
     }
 
     private suspend fun getPhoneNumber() {
-        _state.value = _state.value.copy(phoneNumber = remoteSource?.getContactDetails()?.phone ?: "")
+        _state.value =
+            _state.value.copy(phoneNumber = remoteSource?.getContactDetails()?.phone ?: "")
     }
 }

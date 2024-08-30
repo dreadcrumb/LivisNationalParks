@@ -11,5 +11,6 @@ object NavigationKeys {
     object Route {
         const val TOUR_LIST = "tour_list"
         const val TOUR_DETAIL = "$TOUR_LIST/{$TOUR_ID}"
+        const val TOURS_LANDSCAPE = "tours_landscape"
     }
 }

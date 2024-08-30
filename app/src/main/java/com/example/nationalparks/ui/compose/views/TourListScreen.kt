@@ -22,28 +22,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -61,19 +49,20 @@ import com.example.nationalparks.model.TourItem
 import com.example.nationalparks.ui.compose.contracts.LoadingState
 import com.example.nationalparks.ui.compose.contracts.ToursContract
 import com.example.nationalparks.ui.compose.elements.LoadingBar
+import com.example.nationalparks.ui.compose.elements.ToursAppBar
 import com.example.nationalparks.ui.compose.utils.hasNetworkComposable
 import com.example.nationalparks.ui.theme.AppTheme
 import com.example.nationalparks.ui.viewmodels.Sorting
 import com.example.nationalparks.ui.viewmodels.TourListViewModel
 import com.example.nationalparks.ui.viewmodels.TourListViewModelInterface
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.receiveAsFlow
 
 @Composable
 fun TourListScreen(
     viewModel: TourListViewModelInterface,
+    showTopElements: Boolean,
     onNavigationRequested: (itemId: Int) -> Unit
 ) {
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -81,15 +70,17 @@ fun TourListScreen(
             .background(MaterialTheme.colorScheme.background),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            Column {
-                ToursAppBar()
-                HorizontalDivider(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    thickness = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            if (showTopElements) {
+                Column {
+                    ToursAppBar()
+                    HorizontalDivider(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        thickness = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         },
     ) { paddingValues ->
@@ -98,12 +89,14 @@ fun TourListScreen(
             modifier = Modifier
                 .padding(paddingValues)
         ) {
-            Row {
-                SortButtons(
-                    { viewModel.setSorting(Sorting.STANDARD) },
-                    { viewModel.setSorting(Sorting.TOP5) },
-                    viewModel.state.value.sorting
-                )
+            if (showTopElements) {
+                Row {
+                    SortButtons(
+                        { viewModel.setSorting(Sorting.STANDARD) },
+                        { viewModel.setSorting(Sorting.TOP5) },
+                        viewModel.state.value.sorting
+                    )
+                }
             }
             Row(Modifier.padding(horizontal = 6.dp)) {
                 ToursList(
@@ -116,57 +109,6 @@ fun TourListScreen(
             if (viewModel.state.value.loadingState == LoadingState.LOADING) LoadingBar()
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ToursAppBar() {
-    var menuExpanded by remember {
-        mutableStateOf(false)
-    }
-    TopAppBar(
-        colors = TopAppBarColors(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primary,
-        ),
-        modifier = Modifier,
-        navigationIcon = {
-            Image(
-                modifier = Modifier.size(TopAppBarDefaults.TopAppBarExpandedHeight),
-                painter = painterResource(id = R.drawable.imaginary_logo),
-                contentDescription = "REPLACE"
-            )
-        },
-        title = {
-            Row {
-
-                Text(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    text = stringResource(id = R.string.app_name)
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = { menuExpanded = !menuExpanded }) {
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "More",
-                )
-            }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Our client didnt actually tell us what to do with this button so here we are") },
-                    onClick = { /* TODO */ },
-                )
-            }
-        }
-    )
 }
 
 @Composable
@@ -546,6 +488,7 @@ fun ListPreview() {
         )
         TourListScreen(
             viewModel,
+            true,
             { })
     }
 }
@@ -557,6 +500,7 @@ fun EmptyPreview() {
     AppTheme {
         TourListScreen(
             viewModel,
+            true,
             { }
         )
     }
@@ -570,6 +514,7 @@ fun LoadingPreview() {
     AppTheme {
         TourListScreen(
             viewModel,
+            true,
             { }
         )
     }

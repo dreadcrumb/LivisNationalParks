@@ -7,3 +7,8 @@ fun getScreenWidth(context: Context): Int {
     val metrics: DisplayMetrics = context.resources.displayMetrics
     return metrics.widthPixels
 }
+
+fun getScreenHeight(context: Context): Int {
+    val metrics: DisplayMetrics = context.resources.displayMetrics
+    return metrics.heightPixels
+}

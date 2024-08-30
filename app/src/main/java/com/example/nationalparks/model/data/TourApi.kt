@@ -20,10 +20,10 @@ class TourApi @Inject constructor(
     // Tours
     suspend fun getTours(): List<ToursResponse> = service.getTours()
     suspend fun getTop5Tours(): List<ToursResponse> = service.getTop5Tours()
-    suspend fun getTourDetails(id: Int): TourDetailsResponse = service.getTourDetails(
+    suspend fun getTourDetails(id: Int, useHeight: Boolean): TourDetailsResponse = service.getTourDetails(
         id = id,
-        w = getScreenWidth(context),
-        h = getScreenWidth(context) / 2
+        w = if (useHeight) (getScreenWidth(context) / 2) else  getScreenWidth(context),
+        h = if (useHeight) (getScreenWidth(context) / 4) else  (getScreenWidth(context) / 2),
     )
 
     // Other
