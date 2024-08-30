@@ -3,6 +3,7 @@ package com.example.nationalparks.ui.viewmodels
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -51,10 +52,12 @@ class TourDetailsViewModel @Inject constructor(
     // Init
 
     init {
+        Log.i("TourDetailsViewModel", "init")
         loadDetails()
     }
 
     private fun loadDetails() {
+        Log.i("TourDetailsViewModel", "loadDetails")
         viewModelScope.launch {
             getTourDetails()
             if (context != null && state.value.tour != null) {
@@ -67,7 +70,9 @@ class TourDetailsViewModel @Inject constructor(
     // Interface functions
 
     override fun initialize(useHeight: Boolean) {
+        Log.i("TourDetailsViewModel", "Initialize, useHeight: $useHeight")
         val tourId = stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID)
+        Log.i("TourDetailsViewModel", "Initialize, tourId: $tourId")
         if (tourId != null && tourId > -1) {
             _state.value.useHeight = useHeight
             loadDetails()
@@ -75,12 +80,14 @@ class TourDetailsViewModel @Inject constructor(
     }
 
     override fun initializeManually(tourId: Int) {
+        Log.i("TourDetailsViewModel", "InitializeManually, tourId: $tourId")
         stateHandle?.set(NavigationKeys.Arg.TOUR_ID, tourId)
         _state.value.useHeight = true
         loadDetails()
     }
 
     override fun callCompany() {
+        Log.i("TourDetailsViewModel", "CallCompany")
         val phone = state.value.phoneNumber
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = Uri.parse(phone)
@@ -91,7 +98,9 @@ class TourDetailsViewModel @Inject constructor(
     // Private functions
 
     private suspend fun getTourDetails() {
+        Log.i("TourDetailsViewModel", "getTourDetails")
         val tourId = stateHandle?.get<Int>(NavigationKeys.Arg.TOUR_ID)
+        Log.i("TourDetailsViewModel", "getTourDetails, tourId: $tourId")
         if (tourId == null) {
             _state.value = _state.value.copy(loadingState = LoadingState.ERROR)
             return
@@ -111,6 +120,7 @@ class TourDetailsViewModel @Inject constructor(
     }
 
     private suspend fun loadImage(context: Context, url: String) {
+        Log.i("TourDetailsViewModel", "loadImage, url: $url")
         val imageLoader = ImageLoader(context)
         val request = ImageRequest.Builder(context)
             .data(url)
@@ -127,6 +137,7 @@ class TourDetailsViewModel @Inject constructor(
     }
 
     private suspend fun getPhoneNumber() {
+        Log.i("TourDetailsViewModel", "getPhoneNumber")
         _state.value =
             _state.value.copy(phoneNumber = remoteSource?.getContactDetails()?.phone ?: "")
     }

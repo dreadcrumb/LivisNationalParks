@@ -2,6 +2,7 @@ package com.example.nationalparks.ui.viewmodels
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -50,6 +51,7 @@ class TourListViewModel @Inject constructor(
     override val state: State<ToursContract.State> get() = _state
 
     init {
+        Log.i("TourListViewModel", "init")
         viewModelScope.launch {
             getTours()
             if (context != null) {
@@ -59,6 +61,7 @@ class TourListViewModel @Inject constructor(
     }
 
     override fun setSorting(sorting: Sorting) {
+        Log.i("TourListViewModel", "setSorting, sorting: $sorting")
         if (sorting != state.value.sorting) {
             _state.value = _state.value.copy(sorting = sorting)
             viewModelScope.launch {
@@ -68,16 +71,19 @@ class TourListViewModel @Inject constructor(
     }
 
     override fun getCachedImage(url: String): Drawable? {
+        Log.i("TourListViewModel", "getCachedImage, url: $url")
         return imageCache[url]
     }
 
     private suspend fun getTours() {
+        Log.i("TourListViewModel", "getTours")
         val tours = if (state.value.sorting == Sorting.STANDARD)
             remoteSource?.getTours() // TODO: ask client if result should be sorted (by name or price f.e.)
         else
             remoteSource?.getTop5Tours() // TODO: ask client if result should be sorted (by name or price f.e.)
 
         if (tours.isNullOrEmpty()) {
+            Log.i("TourListViewModel", "getTours, tours are null or empty")
             _state.value = _state.value.copy(loadingState = LoadingState.ERROR)
             return
         }
@@ -88,6 +94,7 @@ class TourListViewModel @Inject constructor(
     private val imageCache = mutableMapOf<String, Drawable>()
 
     private suspend fun preloadImages(context: Context, urls: List<String>) {
+        Log.i("TourListViewModel", "preloadImages, ${urls.size} urls")
         val imageLoader = ImageLoader(context)
 
         urls.forEach { url ->

@@ -64,7 +64,7 @@ class TourApiProvider {
     fun provideTourApiService(
         retrofit: Retrofit
     ): TourApi.Service {
-        Log.i("ApiProvider", "Providing ClubApiService")
+        Log.i("ApiProvider", "Providing TourApiService")
         return retrofit.create(TourApi.Service::class.java)
     }
 }
